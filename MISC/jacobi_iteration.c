@@ -1,0 +1,130 @@
+  
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <math.h>
+
+#define N 100
+#define MAX_ITER 2//  10000
+
+int jacobi();
+void init();
+int convergence();
+void srand();
+void print_vector();
+void print_equation();
+
+float a[N][N], b[N];
+float x[N], buf[N], nextx[N], errorarr[N];
+int n;
+float error;
+
+int main(int argc, char **argv){
+  int n_iter;			/* number of iterations */
+  n = atoi(argv[1]);
+  error = atof(argv[2]);
+
+  init();		   /* initalize a, x0 and b - DO not change */
+  printf("%s", "Implementing jacobi iteration..\n");
+  n_iter = jacobi();
+
+  return 0;
+}
+int jacobi(){
+  float temp[n];
+  for(int i =0; i < n; i++){
+    nextx[i]=0;
+    errorarr[i]=0;
+  }
+  int i,j,k;
+  float sum;
+  // printf("A00: %f, A01: %f, a02:%f, b:%f\n", a[0][0], a[0][1], a[0][2], b[0]);
+  int count=0;
+ while(!convergence() && (count < MAX_ITER)){
+  for(j=0; j < n; j++){
+    for(k=0; k <n; k++){
+      if(!(j==k))
+        sum=sum+a[j][k]*x[k];
+
+    }
+    temp[j]=sum; //Rx^k
+    sum=0;
+  }
+  for(i=0; i < n; i++)
+    temp[i]= b[i]-temp[i]; //b-rx^k
+  for(k=0; k < n; k++)
+    x[k]=temp[k]/a[k][k];
+  
+    count++;
+ }
+  
+  return k;
+}
+// returns 1 if converged else 0
+int convergence(){
+  int i,j,k,flag=1, sum=0;
+  printf("checking convergence of %f %f %f\n", errorarr[0], errorarr[1], errorarr[2]);
+  for(int j =0; j < n; j++){
+    for(int k=0; k < n; k++){
+        sum=sum+(a[j][k]*x[j]);
+        if(k==(n-1)){
+          errorarr[j]=sum-b[j];
+          //printf(" error[%d]: %f\n",j, errorarr[j]);
+        }
+        //printf("%f * %f - %f\n", a[j][k], x[j], b[j]);
+    }
+    sum=0;
+  }
+ 
+  for(int y=0; y <n; y++)
+    if(!((errorarr[y] <= error) && (errorarr[y] >= (0-error))))
+       return 0;
+
+  printf("convergence acheived!\nErrors %f % f %f", errorarr[0], errorarr[1], errorarr[2]);
+  return flag; 
+
+}
+// Try not to change this. Use it as is.
+void init(char **argv){
+  int i,j,k,flag=0;
+  float sum;
+  int seed = time(0) % 100;	/* seconds since 1/1/1970 */
+
+  srand(seed);
+  for (i=0;i<n;i++) {
+    for (j=0;j<n;j++) {
+      a[i][j] = rand() & 0x7;
+      if (rand() & 0x1) a[i][j] = -a[i][j];
+    }
+    sum = 0;
+    for (j=0;j<n;j++) if(i!=j) sum = sum + abs(a[i][j]);
+    if (a[i][i] < sum) a[i][i] = sum + a[i][i];
+  }
+
+  for (i=0;i<n;i++) x[i]=1;
+
+  srand(seed);
+  for (i=0;i<n;i++){
+    b[i]=rand() & 0x7;
+    if (rand() & 0x1) b[i] = -b[i];
+  }
+
+  print_equation();
+
+}
+void print_equation(){
+  int i,j;
+
+  printf("A*x=b\n");
+  for (i=0;i<n;i++) {
+    for (j=0;j<n;j++) printf("%2d ",(int)(a[i][j]));
+    printf(" * x%d = %d\n",i,(int)(b[i]));
+  }
+  printf("\n");
+}
+void print_vector(float *l){
+  int i;
+  for (i=0; i<n; i++) printf("%.6f ",l[i]);
+  printf("\n");
+}
